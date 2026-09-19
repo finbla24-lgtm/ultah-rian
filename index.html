@@ -1,1 +1,619 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Surprise 🎂</title>
 
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(135deg,#ffd6e7,#dcecff);
+    min-height:100vh;
+    overflow:hidden;
+    color:#5c3150;
+}
+
+.page{
+    display:none;
+    width:100%;
+    height:100vh;
+    padding:25px;
+    text-align:center;
+    position:relative;
+}
+
+.page.active{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+h1{
+    font-size:clamp(28px,7vw,50px);
+    margin:10px;
+}
+
+h2{
+    font-size:clamp(22px,5vw,36px);
+}
+
+p{
+    font-size:18px;
+    line-height:1.6;
+}
+
+button{
+    border:none;
+    border-radius:30px;
+    padding:14px 28px;
+    font-size:17px;
+    font-weight:bold;
+    background:#ff6fa5;
+    color:white;
+    cursor:pointer;
+    box-shadow:0 5px 15px #0002;
+    margin:10px;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+.counter{
+    font-size:20px;
+    font-weight:bold;
+    margin:10px;
+}
+
+/* BALON */
+#balloons{
+    width:min(900px,95%);
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:12px;
+    margin-top:15px;
+}
+
+.balloon{
+    width:58px;
+    height:72px;
+    border-radius:50% 50% 45% 45%;
+    cursor:pointer;
+    position:relative;
+    animation:float 2s infinite alternate;
+    box-shadow:inset -7px -8px 10px #0002;
+}
+
+.balloon::after{
+    content:"";
+    position:absolute;
+    width:2px;
+    height:35px;
+    background:#777;
+    left:50%;
+    top:70px;
+}
+
+@keyframes float{
+    from{transform:translateY(0)}
+    to{transform:translateY(-8px)}
+}
+
+.balloon.pop{
+    animation:pop .3s forwards;
+}
+
+@keyframes pop{
+    to{
+        transform:scale(1.8);
+        opacity:0;
+    }
+}
+
+/* AMPLOP */
+.envelope{
+    width:240px;
+    height:160px;
+    background:#ff9fc4;
+    position:relative;
+    cursor:pointer;
+    border-radius:10px;
+    box-shadow:0 10px 25px #0003;
+    margin:20px;
+}
+
+.envelope:before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    border-left:120px solid transparent;
+    border-right:120px solid transparent;
+    border-top:90px solid #ff75a8;
+}
+
+.envelope span{
+    position:absolute;
+    z-index:2;
+    left:0;
+    right:0;
+    top:65px;
+    font-size:45px;
+}
+
+/* FOTO */
+.photo{
+    width:min(280px,75vw);
+    max-height:300px;
+    object-fit:cover;
+    border-radius:20px;
+    border:6px solid white;
+    box-shadow:0 8px 25px #0003;
+    margin:15px;
+}
+
+/* SURPRISE BOX */
+.gift{
+    font-size:120px;
+    cursor:pointer;
+    animation:bounce 1s infinite alternate;
+}
+
+@keyframes bounce{
+    to{transform:translateY(-12px)}
+}
+
+/* GAME */
+#gameArea{
+    width:100%;
+    height:65vh;
+    position:relative;
+    overflow:hidden;
+}
+
+.gameHeart{
+    position:absolute;
+    font-size:35px;
+    cursor:pointer;
+    user-select:none;
+    animation:heartFloat 2s linear forwards;
+}
+
+@keyframes heartFloat{
+    from{
+        transform:translateY(0);
+        opacity:1;
+    }
+    to{
+        transform:translateY(-100px);
+        opacity:0;
+    }
+}
+
+/* FINAL */
+#finalMessage{
+    display:none;
+}
+
+.finalPhoto{
+    width:min(260px,70vw);
+    border-radius:20px;
+    border:6px solid white;
+}
+
+.heartRain{
+    position:fixed;
+    top:-40px;
+    font-size:25px;
+    animation:rain 4s linear forwards;
+    pointer-events:none;
+}
+
+@keyframes rain{
+    to{
+        transform:translateY(110vh) rotate(360deg);
+        opacity:0;
+    }
+}
+
+#countdown{
+    font-size:70px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MUSIK -->
+<audio id="music" loop>
+    <source src="backsound.mp3" type="audio/mpeg">
+</audio>
+
+<!-- PAGE 1 -->
+<section id="page1" class="page active">
+
+    <h1>🎈 Pecahkan Semua Balon! 🎈</h1>
+
+    <p>
+        Ada <b>21 balon</b> untuk kamu pecahkan.
+        <br>
+        Setelah semuanya pecah, kejutan berikutnya akan terbuka 💕
+    </p>
+
+    <div class="counter">
+        Balon tersisa: <span id="balloonCount">21</span>
+    </div>
+
+    <div id="balloons"></div>
+
+</section>
+
+
+<!-- PAGE 2 -->
+<section id="page2" class="page">
+
+    <h1>💌 Ada Surat Untukmu</h1>
+
+    <p>Klik amplopnya untuk membukanya.</p>
+
+    <div class="envelope" onclick="openEnvelope()">
+        <span>💌</span>
+    </div>
+
+</section>
+
+
+<!-- PAGE 3 -->
+<section id="page3" class="page">
+
+    <h2>💖 Untuk Rian 💖</h2>
+
+    <img src="rian.jpeg" class="photo" alt="Foto">
+
+    <p>
+        Selamat ulang tahun! 🎂🎉
+        <br><br>
+        Semoga hari ini membawa banyak kebahagiaan,
+        tawa, dan hal-hal baik.
+        <br>
+        Semoga semua harapan dan cita-citamu
+        perlahan bisa terwujud.
+        <br><br>
+        Tetap jadi pribadi yang baik,
+        semangat mengejar impian,
+        dan jangan lupa bahagia! 💕
+    </p>
+
+    <button onclick="goToPage(4); startMusic();">
+        Aku Punya Kejutan 🎁
+    </button>
+
+</section>
+
+
+<!-- PAGE 4 -->
+<section id="page4" class="page">
+
+    <h1>🎁 Kejutan!</h1>
+
+    <p>
+        Klik kotak hadiah untuk memulai permainan.
+    </p>
+
+    <div class="gift" onclick="startGame()">
+        🎁
+    </div>
+
+</section>
+
+
+<!-- PAGE 5 -->
+<section id="page5" class="page">
+
+    <h2>💗 Kumpulkan Hati Sebanyak Mungkin! 💗</h2>
+
+    <div class="counter">
+        Waktu: <span id="timer">30</span> detik
+        &nbsp; | &nbsp;
+        Skor: <span id="score">0</span>
+    </div>
+
+    <div id="gameArea"></div>
+
+</section>
+
+
+<!-- PAGE 6 -->
+<section id="page6" class="page">
+
+    <div id="countdown">5</div>
+
+    <div id="finalMessage">
+
+        <h1>🎉 SURPRISE! 🎉</h1>
+
+        <div class="gift">🎁</div>
+
+        <h2>Selamat Ulang Tahun, Rian! 💖</h2>
+
+        <img src="rian.jpeg" class="finalPhoto" alt="Foto Rian">
+
+        <p>
+            Semoga tahun ini menjadi tahun yang
+            penuh cerita indah, kebahagiaan,
+            keberanian, dan kesuksesan.
+            <br><br>
+            Jangan berhenti bermimpi dan terus
+            melangkah menuju hal-hal yang kamu inginkan. ✨
+            <br><br>
+            🎂 Happy Birthday! 🎂
+        </p>
+
+        <button onclick="location.reload()">
+            🔄 Main Lagi
+        </button>
+
+    </div>
+
+</section>
+
+
+<script>
+
+let popped = 0;
+let score = 0;
+let timeLeft = 30;
+let gameInterval;
+let heartInterval;
+
+const music = document.getElementById("music");
+
+
+/* PINDAH HALAMAN */
+function goToPage(number){
+
+    document.querySelectorAll(".page").forEach(page=>{
+        page.classList.remove("active");
+    });
+
+    document.getElementById("page"+number).classList.add("active");
+}
+
+
+/* MUSIK */
+function startMusic(){
+
+    music.volume = 0.5;
+
+    music.play().catch(()=>{
+        console.log("Musik menunggu interaksi pengguna.");
+    });
+
+}
+
+
+/* BUAT BALON */
+function createBalloons(){
+
+    const container = document.getElementById("balloons");
+
+    container.innerHTML = "";
+
+    const colors = [
+        "#ff6fa5",
+        "#ff9fba",
+        "#9ecbff",
+        "#b8a7ff",
+        "#ffd166"
+    ];
+
+    for(let i=0;i<21;i++){
+
+        const balloon = document.createElement("div");
+
+        balloon.className = "balloon";
+
+        balloon.style.background =
+            colors[i % colors.length];
+
+        balloon.onclick = function(){
+
+            if(balloon.classList.contains("pop")) return;
+
+            balloon.classList.add("pop");
+
+            popped++;
+
+            document.getElementById("balloonCount").textContent =
+                21 - popped;
+
+            setTimeout(()=>{
+
+                balloon.remove();
+
+                if(popped === 21){
+
+                    setTimeout(()=>{
+                        goToPage(2);
+                    },500);
+
+                }
+
+            },250);
+
+        };
+
+        container.appendChild(balloon);
+    }
+}
+
+
+/* AMPLOP */
+function openEnvelope(){
+
+    startMusic();
+
+    goToPage(3);
+
+}
+
+
+/* MULAI GAME */
+function startGame(){
+
+    startMusic();
+
+    goToPage(5);
+
+    score = 0;
+    timeLeft = 30;
+
+    document.getElementById("score").textContent = score;
+    document.getElementById("timer").textContent = timeLeft;
+
+    document.getElementById("gameArea").innerHTML = "";
+
+    clearInterval(gameInterval);
+    clearInterval(heartInterval);
+
+    gameInterval = setInterval(()=>{
+
+        timeLeft--;
+
+        document.getElementById("timer").textContent =
+            timeLeft;
+
+        if(timeLeft <= 0){
+
+            clearInterval(gameInterval);
+            clearInterval(heartInterval);
+
+            setTimeout(()=>{
+                goToPage(6);
+                startFinalCountdown();
+            },500);
+
+        }
+
+    },1000);
+
+    heartInterval = setInterval(createHeart,500);
+}
+
+
+/* BUAT HATI */
+function createHeart(){
+
+    const area = document.getElementById("gameArea");
+
+    const heart = document.createElement("div");
+
+    heart.className = "gameHeart";
+
+    heart.textContent = "💗";
+
+    heart.style.left =
+        Math.random()*90 + "%";
+
+    heart.style.top =
+        Math.random()*85 + "%";
+
+    heart.onclick = function(){
+
+        score++;
+
+        document.getElementById("score").textContent =
+            score;
+
+        heart.remove();
+
+    };
+
+    area.appendChild(heart);
+
+    setTimeout(()=>{
+        if(heart.parentNode){
+            heart.remove();
+        }
+    },2000);
+}
+
+
+/* COUNTDOWN FINAL */
+function startFinalCountdown(){
+
+    let count = 5;
+
+    const countdown =
+        document.getElementById("countdown");
+
+    const interval = setInterval(()=>{
+
+        count--;
+
+        countdown.textContent = count;
+
+        if(count <= 0){
+
+            clearInterval(interval);
+
+            countdown.style.display = "none";
+
+            document.getElementById("finalMessage")
+                .style.display = "block";
+
+            startHeartRain();
+
+        }
+
+    },1000);
+}
+
+
+/* HUJAN HATI */
+function startHeartRain(){
+
+    setInterval(()=>{
+
+        const heart =
+            document.createElement("div");
+
+        heart.className = "heartRain";
+
+        heart.textContent =
+            ["💗","💕","💖","💘","❤️"]
+            [Math.floor(Math.random()*5)];
+
+        heart.style.left =
+            Math.random()*100 + "vw";
+
+        heart.style.animationDuration =
+            (3 + Math.random()*3) + "s";
+
+        document.body.appendChild(heart);
+
+        setTimeout(()=>{
+            heart.remove();
+        },6000);
+
+    },250);
+
+}
+
+
+/* MULAI */
+createBalloons();
+
+</script>
+
+</body>
+</html>
